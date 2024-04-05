@@ -3,69 +3,63 @@
 #include <Windows.h>
 #include <chrono>
 #include <conio.h>
+#include "Entity.h"
 using namespace std;
 
 const int m_screenWidth = 120;
 const int m_screenHeight = 40;
-float cursorX = 0.0;
-float cursorY = 0.0;
-WCHAR cursor = '#';
 WCHAR emptyChar = ' ';
+auto tp1 = chrono::system_clock::now();
+auto tp2 = chrono::system_clock::now();
+Entity Player;
 
 int main()
 {
+    Player = { 0,0,(WCHAR)0xfeff2588 };
     wchar_t* screen = new wchar_t[m_screenWidth * m_screenHeight];
     std::fill_n(screen, m_screenWidth * m_screenHeight, emptyChar);
     HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER,NULL);
     SetConsoleActiveScreenBuffer(hConsole);
+    CONSOLE_CURSOR_INFO info;
+    GetConsoleCursorInfo(hConsole, &info);
+    info.bVisible = false;
+    SetConsoleCursorInfo(hConsole, &info);
     DWORD dwBytesWritten = 0;
     DWORD dwConSize;
-    bool up = false,down = false,left = false,right = false;
     for (;;) {
-        screen[(short)cursorY * m_screenWidth + (short)cursorX] = emptyChar;
+        tp2 = chrono::system_clock::now();
+        chrono::duration<float> elapsedTime = tp2 - tp1;
+        tp1 = tp2;
+        float fElapsedTime = elapsedTime.count();
 
-        if (GetAsyncKeyState(VK_UP) & 0x8000 && !up) {
-            if (cursorY > 0) {
-                cursorY-= 1;
+        screen[(short)Player.Y * m_screenWidth + (short)Player.X] = emptyChar;
+
+        if (GetAsyncKeyState(VK_UP) & 0x8000) {
+            if (Player.Y > 0) {
+                Player.Y -= 5.0 * fElapsedTime;
             }
-            up = true;
-        } 
-        if (GetAsyncKeyState(VK_UP) == 0 && up) {
-            up = false; 
         }
-        if (GetAsyncKeyState(VK_DOWN) & 0x8000 && !down) {
-            if (cursorY < m_screenHeight - 1) {
-                cursorY+= 1;
+        if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
+            if (Player.Y < m_screenHeight - 1) {
+                Player.Y += 5.0 * fElapsedTime;
             }
-            down = true;
-        } 
-        if (GetAsyncKeyState(VK_DOWN) == 0 && down) {
-            down = false; 
         }
-        if (GetAsyncKeyState(VK_LEFT) & 0x8000 && !left) {
-            if (cursorX > 0) {
-                cursorX-= 1;
+        if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
+            if (Player.X > 0) {
+                Player.X -= 5.0 * fElapsedTime;
             }
-            left = true;
-        } 
-        if (GetAsyncKeyState(VK_LEFT) == 0 && left) {
-            left = false;
         }
-        if (GetAsyncKeyState(VK_RIGHT) & 0x8000 && !right) {
-            if (cursorX < m_screenWidth - 1) {
-                cursorX+= 1;
+        if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
+            if (Player.X < m_screenWidth - 1) {
+                Player.X += 5.0 * fElapsedTime;
             }
-            right = true;
-        } 
-        if (GetAsyncKeyState(VK_RIGHT) == 0 && right) {
-            right = false; 
         }
         if (GetAsyncKeyState((unsigned short)'Q') & 0x8000) {
             return 0;
         }
-        short currentX = (short)cursorX;
-        short currentY = (short)cursorY;
-        screen[currentY * m_screenWidth + currentX] = cursor;
+        short currentX = (short)Player.X;
+        short currentY = (short)Player.Y;
+        screen[currentY * m_screenWidth + currentX] = Player.symbol;
         screen[m_screenWidth * m_screenHeight - 1] = '\0';
         
         WriteConsoleOutputCharacter(hConsole, screen, m_screenWidth * m_screenHeight, { 0,0}, &dwBytesWritten);
@@ -73,3 +67,13 @@ int main()
 
 }
 
+/*
+0xfeff263A face
+0xfeff03c8 Cactus
+0x0xfeff03c8 boat
+0xfeff0c06 other boat
+0xfeff0da3
+0xfeff0df4 grass
+0xfeff1099
+0xfeff2588
+*/
