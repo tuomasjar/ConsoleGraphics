@@ -24,6 +24,13 @@ Entity EndOfGame;
 bool hit = false;
 int offset = 0;
 
+void menu() {
+    int selected = 0;
+    wchar_t* screen = new wchar_t[m_screenWidth * m_screenHeight];
+    std::fill_n(screen, m_screenWidth * m_screenHeight, emptyChar);
+    bool up = false, down = false, left = false, right = false;
+}
+
 void parseMap(wstring map, int mapWidth, int mapHeight) {
     Player = { 0,0,0,0,false,(WCHAR)0xfeff263A };
     EndOfGame = { 0,0,0,0,false,'$'};
@@ -87,7 +94,7 @@ int main()
         // Clear previous position
         screen[(int)Player.Y * m_screenWidth + (int)(Player.X-offset)] = emptyChar;
         // See if we can and will jump
-        if (GetAsyncKeyState(VK_UP) & 0x8000 && !Player.jump) {
+        if (GetAsyncKeyState((unsigned short)' ') & 0x8000 && !Player.jump) {
             Player.ySpeed = -jumpSpeed;
             Player.jump = true;
         }else if (Player.Y > m_screenHeight) {
