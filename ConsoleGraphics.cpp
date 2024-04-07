@@ -29,6 +29,7 @@ void menu() {
     wchar_t* screen = new wchar_t[m_screenWidth * m_screenHeight];
     std::fill_n(screen, m_screenWidth * m_screenHeight, emptyChar);
     bool up = false, down = false, left = false, right = false;
+
 }
 
 void parseMap(wstring map, int mapWidth, int mapHeight) {
