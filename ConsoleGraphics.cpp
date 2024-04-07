@@ -20,25 +20,44 @@ const WCHAR fullBlock = (WCHAR)0xfeff2588;
 auto tp1 = chrono::system_clock::now();
 auto tp2 = chrono::system_clock::now();
 Entity Player;
+Entity EndOfGame;
 bool hit = false;
 int offset = 0;
+
+void parseMap(wstring map, int mapWidth, int mapHeight) {
+    Player = { 0,0,0,0,false,(WCHAR)0xfeff263A };
+    EndOfGame = { 0,0,0,0,false,'$'};
+    int full_length = mapWidth * mapHeight;
+    for (int i = 0; i < full_length; i++) {
+        if (map[i] == 'P' && Player.X == 0) {
+            Player.Y = (int)(i / mapWidth) * 4 + 2;
+            Player.X = (int)(i % mapWidth) * 4 + 2;
+        }
+        if (map[i] == 'X' && EndOfGame.X == 0) {
+            EndOfGame.Y = (int)(i / mapWidth) * 4 + 2;
+            EndOfGame.X = (int)(i % mapWidth) * 4 + 2;
+        }
+        if (Player.X != 0 && EndOfGame.X != 0) {
+            return;
+        }
+    }
+}
 
 int main()
 {
     wstring map;
     map += L"############################################################";
-    map += L"#                                                          #";
+    map += L"#                                                         X#";
     map += L"#                         #####                         ####";
     map += L"#                      ##    ##                      ##    #";
     map += L"#                 ###    ##                     ###    ##  #";
-    map += L"#           ###          ##               ###          ##  #";
+    map += L"# P         ###          ##               ###          ##  #";
     map += L"#     ###                           ###                    #";
     map += L"###                          ####                          #";
     map += L"#                        ######                        #####";
     map += L"############################################################";
 
-
-    Player = { 10,17,0,0,false,(WCHAR)0xfeff263A };
+    parseMap(map, m_mapWidth, m_mapHeight);
     wchar_t* screen = new wchar_t[m_screenWidth * m_screenHeight];
     std::fill_n(screen, m_screenWidth * m_screenHeight, emptyChar);
     HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER,NULL);
@@ -51,6 +70,14 @@ int main()
     DWORD dwConSize;
     int testVariable = 0;
     bool s_pressed = false;
+    for (int x = 0; x < m_screenWidth; x++)
+        for (int y = 0; y < m_screenHeight; y++) {
+            if (map[(y / 4) * m_mapWidth + ((x + offset) / 4)] == '#') {
+                screen[y * m_screenWidth + x] = fullBlock;
+            } else {
+                screen[y * m_screenWidth + x] = emptyChar;
+            }
+        }
     for (;;) {
         // Time elapsed
         tp2 = chrono::system_clock::now();
@@ -137,6 +164,9 @@ int main()
                     offset = m_screenWidth;
                 }
         }
+        if ((int)Player.X == (int)EndOfGame.X && (int)Player.Y == (int)EndOfGame.Y) {
+            return 0;
+        }
         // Draw screen
         for (int x = 0; x < m_screenWidth; x++)
             for (int y = 0; y < m_screenHeight; y++) {
@@ -150,6 +180,9 @@ int main()
         swprintf_s(screen, 75, L"Offset=%d, X=%d, Y=%d, xSpeed = %3.2f, ySpeed = %3.2f, FPS=%3.2f", offset, (int)Player.X, (int)Player.Y, Player.xSpeed, Player.ySpeed, 1.0f / fElapsedTime);
         // Print player location.
         screen[(short)Player.Y * m_screenWidth + (short)(Player.X - offset)] = Player.symbol;
+        if (offset + m_screenWidth > EndOfGame.X) {
+            screen[(short)EndOfGame.Y * m_screenWidth + (short)(EndOfGame.X - offset)] = EndOfGame.symbol;
+        }
         // last position to string terminator
         screen[m_screenWidth * m_screenHeight - 1] = '\0';
         // Draw screen
